@@ -69,7 +69,8 @@ class DTOTest extends TestCase
 
         $this->assertTrue($response->hasAvailableMethods());
         $this->assertCount(2, $response->getAvailableMethods());
-        $this->assertEquals('MPESA', $response->getPreferredMethod());
+        $this->assertIsArray($response->getPreferredMethod());
+        $this->assertEquals('MPESA', $response->getPreferredMethod()['name']);
         $this->assertTrue($response->hasSufficientBalance());
         $this->assertEquals(4000, $response->getRemainingBalance());
     }

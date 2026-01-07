@@ -110,6 +110,16 @@ class WebhookCallbackTest extends TestCase
     {
         config(['clickpesa.verify_signature' => false]);
 
+        // Create initial transaction so the controller can update it
+        ClickpesaTransaction::create([
+            'type' => 'payment',
+            'channel' => 'ussd_push',
+            'order_reference' => 'HEADER_TEST',
+            'amount' => 1000,
+            'currency' => 'TZS',
+            'status' => 'pending',
+        ]);
+
         $payload = [
             'orderReference' => 'HEADER_TEST',
             'status' => 'SUCCESS',
@@ -125,8 +135,10 @@ class WebhookCallbackTest extends TestCase
         $webhook = ClickpesaWebhook::where('order_reference', 'HEADER_TEST')->first();
         
         $this->assertNotNull($webhook);
-        $this->assertEquals('test_signature', $webhook->headers['signature']);
-        $this->assertEquals('Clickpesa/1.0', $webhook->headers['user_agent']);
+        $headers = $webhook->headers;
+        $this->assertIsArray($headers);
+        $this->assertEquals('test_signature', $headers['signature'] ?? null);
+        $this->assertEquals('Clickpesa/1.0', $headers['user_agent'] ?? null);
     }
 
     /** @test */
