@@ -46,6 +46,10 @@ class ClickpesaServiceProvider extends ServiceProvider
             $this->publishes([
                 __DIR__.'/Config/clickpesa.php' => config_path('clickpesa.php'),
             ], 'clickpesa-config');
+
+            $this->publishes([
+                __DIR__.'/../database/migrations/' => database_path('migrations'),
+            ], 'clickpesa-migrations');
         }
 
         $this->loadRoutesFrom(__DIR__.'/routes/web.php');
