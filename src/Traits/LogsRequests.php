@@ -60,21 +60,36 @@ trait LogsRequests
      */
     protected function sanitizeData(array $data): array
     {
-        $sensitive_keys = ['api_key', 'client_id', 'token', 'Authorization', 'password'];
+        $sensitive_keys = ['api_key', 'client_id', 'token', 'authorization', 'password', 'secret', 'api-key', 'client-id'];
         
-        return array_map(function ($value) use ($sensitive_keys) {
+        $sanitized = [];
+        foreach ($data as $key => $value) {
             if (is_array($value)) {
-                return $this->sanitizeData($value);
+                $sanitized[$key] = $this->sanitizeData($value);
+            } elseif ($this->isSensitiveKey($key, $sensitive_keys)) {
+                $sanitized[$key] = '***REDACTED***';
+            } else {
+                $sanitized[$key] = $value;
             }
-            
-            foreach ($sensitive_keys as $key) {
-                if (strpos(strtolower($key), strtolower($key)) !== false) {
-                    return '***REDACTED***';
-                }
+        }
+        
+        return $sanitized;
+    }
+
+    /**
+     * Check if a key is sensitive
+     */
+    protected function isSensitiveKey(string $key, array $sensitive_keys): bool
+    {
+        $key_lower = strtolower($key);
+        
+        foreach ($sensitive_keys as $sensitive) {
+            if (strpos($key_lower, strtolower($sensitive)) !== false) {
+                return true;
             }
-            
-            return $value;
-        }, $data);
+        }
+        
+        return false;
     }
 
     /**
