@@ -1,0 +1,43 @@
+{
+    "name": "dawilly/laravel-clickpesa",
+    "description": "Laravel payment integration for Clickpesa",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Dawilly Gene",
+            "email": "dawilly@dawillygene.com"
+        }
+    ],
+    "require": {
+        "php": "^8.0",
+        "illuminate/support": "^9.0|^10.0|^11.0",
+        "guzzlehttp/guzzle": "^7.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^7.0|^8.0|^9.0",
+        "phpunit/phpunit": "^9.0|^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Dawilly\\Dawilly\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Dawilly\\Dawilly\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Dawilly\\Dawilly\\ClickpesaServiceProvider"
+            ],
+            "aliases": {
+                "Clickpesa": "Dawilly\\Dawilly\\Facades\\Clickpesa"
+            }
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
