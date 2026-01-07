@@ -1,8 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<phpunit bootstrap="vendor/autoload.php">
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         stopOnFailure="false"
+>
     <testsuites>
-        <testsuite name="Package Test Suite">
-            <directory suffix="Test.php">./tests</directory>
+        <testsuite name="Unit Tests">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="Feature Tests">
+            <directory>tests/Feature</directory>
         </testsuite>
     </testsuites>
+    
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="DB_CONNECTION" value="sqlite"/>
+        <env name="DB_DATABASE" value=":memory:"/>
+        <env name="CACHE_DRIVER" value="array"/>
+        <env name="CLICKPESA_API_KEY" value="test_api_key"/>
+        <env name="CLICKPESA_CLIENT_ID" value="test_client_id"/>
+        <env name="CLICKPESA_ENVIRONMENT" value="sandbox"/>
+        <env name="CLICKPESA_LOGGING_ENABLED" value="false"/>
+    </php>
+    
+    <coverage processUncoveredFiles="true">
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+        <exclude>
+            <directory>src/Config</directory>
+        </exclude>
+    </coverage>
 </phpunit>
