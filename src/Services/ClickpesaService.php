@@ -4,9 +4,12 @@ namespace Dawilly\Dawilly\Services;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Dawilly\Dawilly\Traits\LogsRequests;
 
 class ClickpesaService
 {
+    use LogsRequests;
+    
     protected $apiKey;
     protected $clientId;
     protected $environment;
@@ -60,6 +63,10 @@ class ClickpesaService
     public function generateToken()
     {
         try {
+            $this->logRequest('POST', '/third-parties/generate-token', [
+                'client_id' => $this->clientId
+            ]);
+
             $response = $this->client->post('/third-parties/generate-token', [
                 'headers' => [
                     'api-key' => $this->apiKey,
@@ -69,13 +76,20 @@ class ClickpesaService
 
             $body = json_decode($response->getBody(), true);
             
+            $this->logResponse('POST', '/third-parties/generate-token', $body, true);
+            
             if (isset($body['success']) && $body['success'] === true) {
-                $this->token = $body['token']; // Token includes "Bearer " prefix
+                $this->token = $body['token'];
                 return $this->token;
             }
 
             return null;
         } catch (RequestException $e) {
+            $errorMessage = $e->getMessage();
+            $this->logError('Failed to generate token', [
+                'error' => $errorMessage,
+                'code' => $e->getCode(),
+            ]);
             return null;
         }
     }
@@ -103,6 +117,11 @@ class ClickpesaService
         $this->ensureToken();
         
         if (!$this->token) {
+            $this->logError('No authentication token available', [
+                'method' => $method,
+                'endpoint' => $endpoint,
+            ]);
+            
             return [
                 'success' => false,
                 'message' => 'Failed to authenticate with Clickpesa'
@@ -110,6 +129,8 @@ class ClickpesaService
         }
 
         try {
+            $this->logRequest($method, $endpoint, $data);
+
             $options = [
                 'headers' => [
                     'Authorization' => $this->token,
@@ -123,13 +144,27 @@ class ClickpesaService
             }
 
             $response = $this->client->request($method, $endpoint, $options);
-            return json_decode($response->getBody(), true);
+            $responseBody = json_decode($response->getBody(), true);
+            
+            $this->logResponse($method, $endpoint, $responseBody, true);
+            
+            return $responseBody;
 
         } catch (RequestException $e) {
+            $errorMessage = $e->getMessage();
+            $responseData = $e->hasResponse() ? json_decode($e->getResponse()->getBody()->getContents(), true) : null;
+            
+            $this->logError('API request failed', [
+                'method' => $method,
+                'endpoint' => $endpoint,
+                'error' => $errorMessage,
+                'response' => $responseData,
+            ]);
+            
             return [
                 'success' => false,
-                'message' => $e->getMessage(),
-                'response' => $e->hasResponse() ? json_decode($e->getResponse()->getBody()->getContents(), true) : null
+                'message' => $errorMessage,
+                'response' => $responseData
             ];
         }
     }

@@ -4,9 +4,12 @@ namespace Dawilly\Dawilly\Services;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
+use Dawilly\Dawilly\Traits\LogsRequests;
 
 class DisbursementService
 {
+    use LogsRequests;
+    
     protected $apiKey;
     protected $clientId;
     protected $environment;
@@ -45,6 +48,11 @@ class DisbursementService
     protected function makeRequest($method, $endpoint, $data = [])
     {
         if (!$this->token) {
+            $this->logError('No authentication token available', [
+                'method' => $method,
+                'endpoint' => $endpoint,
+            ]);
+            
             return [
                 'success' => false,
                 'message' => 'Authentication required. Please set token first.'
@@ -52,6 +60,8 @@ class DisbursementService
         }
 
         try {
+            $this->logRequest($method, $endpoint, $data);
+
             $options = [
                 'headers' => [
                     'Authorization' => $this->token,
@@ -65,13 +75,27 @@ class DisbursementService
             }
 
             $response = $this->client->request($method, $endpoint, $options);
-            return json_decode($response->getBody(), true);
+            $responseBody = json_decode($response->getBody(), true);
+            
+            $this->logResponse($method, $endpoint, $responseBody, true);
+            
+            return $responseBody;
 
         } catch (RequestException $e) {
+            $errorMessage = $e->getMessage();
+            $responseData = $e->hasResponse() ? json_decode($e->getResponse()->getBody()->getContents(), true) : null;
+            
+            $this->logError('API request failed', [
+                'method' => $method,
+                'endpoint' => $endpoint,
+                'error' => $errorMessage,
+                'response' => $responseData,
+            ]);
+            
             return [
                 'success' => false,
-                'message' => $e->getMessage(),
-                'response' => $e->hasResponse() ? json_decode($e->getResponse()->getBody()->getContents(), true) : null
+                'message' => $errorMessage,
+                'response' => $responseData
             ];
         }
     }
