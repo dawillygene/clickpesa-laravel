@@ -5,10 +5,11 @@ namespace Dawilly\Dawilly\Services;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Dawilly\Dawilly\Traits\LogsRequests;
+use Dawilly\Dawilly\Traits\CachesTokens;
 
 class DisbursementService
 {
-    use LogsRequests;
+    use LogsRequests, CachesTokens;
     
     protected $apiKey;
     protected $clientId;
@@ -107,6 +108,7 @@ class DisbursementService
      * 
      * Validates mobile money payout details like phone number, amount, order-reference, fee.
      * Provides exchange rate information if currency conversion is applied.
+     * Results are cached for 5 minutes to avoid duplicate preview calls.
      * 
      * @param array $data Request payload
      *   - amount (number, required): Your payout amount
@@ -157,7 +159,22 @@ class DisbursementService
      */
     public function previewMobileMoneyPayout(array $data)
     {
-        return $this->makeRequest('POST', '/third-parties/payouts/preview-mobile-money-payout', $data);
+        // Check cache first
+        $cacheKey = $this->generatePreviewCacheKey($data);
+        $cached = $this->getCachedPreview($cacheKey);
+        
+        if ($cached) {
+            return $cached;
+        }
+
+        $response = $this->makeRequest('POST', '/third-parties/payouts/preview-mobile-money-payout', $data);
+        
+        // Cache successful previews
+        if (!isset($response['success']) || $response['success'] !== false) {
+            $this->cachePreview($cacheKey, $response, config('clickpesa.cache.preview_ttl', 300));
+        }
+        
+        return $response;
     }
 
     /**
@@ -231,6 +248,7 @@ class DisbursementService
      * 
      * Validates bank payout details like amount, order-reference and verifies 
      * payout channels availability. Provides fee and exchange information.
+     * Results are cached for 5 minutes to avoid duplicate preview calls.
      * 
      * @param array $data Request payload
      *   - amount (number, required): Your payout amount
@@ -284,7 +302,22 @@ class DisbursementService
      */
     public function previewBankPayout(array $data)
     {
-        return $this->makeRequest('POST', '/third-parties/payouts/preview-bank-payout', $data);
+        // Check cache first
+        $cacheKey = $this->generatePreviewCacheKey($data);
+        $cached = $this->getCachedPreview($cacheKey);
+        
+        if ($cached) {
+            return $cached;
+        }
+
+        $response = $this->makeRequest('POST', '/third-parties/payouts/preview-bank-payout', $data);
+        
+        // Cache successful previews
+        if (!isset($response['success']) || $response['success'] !== false) {
+            $this->cachePreview($cacheKey, $response, config('clickpesa.cache.preview_ttl', 300));
+        }
+        
+        return $response;
     }
 
     /**

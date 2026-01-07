@@ -5,10 +5,11 @@ namespace Dawilly\Dawilly\Services;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Dawilly\Dawilly\Traits\LogsRequests;
+use Dawilly\Dawilly\Traits\CachesTokens;
 
 class ClickpesaService
 {
-    use LogsRequests;
+    use LogsRequests, CachesTokens;
     
     protected $apiKey;
     protected $clientId;
@@ -62,6 +63,13 @@ class ClickpesaService
      */
     public function generateToken()
     {
+        // Check cache first
+        $cachedToken = $this->getCachedToken();
+        if ($cachedToken) {
+            $this->token = $cachedToken;
+            return $this->token;
+        }
+
         try {
             $this->logRequest('POST', '/third-parties/generate-token', [
                 'client_id' => $this->clientId
@@ -80,6 +88,7 @@ class ClickpesaService
             
             if (isset($body['success']) && $body['success'] === true) {
                 $this->token = $body['token'];
+                $this->cacheToken($this->token);
                 return $this->token;
             }
 
@@ -174,6 +183,7 @@ class ClickpesaService
      * 
      * Validates push details like phone number, amount, order-reference and verifies
      * payment channels availability before initiating the actual payment.
+     * Results are cached for 5 minutes to avoid duplicate preview calls.
      * 
      * @param array $data Request payload
      *   - amount (string, required): Your payment amount
@@ -223,7 +233,22 @@ class ClickpesaService
      */
     public function previewUssdPushRequest(array $data)
     {
-        return $this->makeRequest('POST', '/third-parties/payments/preview-ussd-push-request', $data);
+        // Check cache first
+        $cacheKey = $this->generatePreviewCacheKey($data);
+        $cached = $this->getCachedPreview($cacheKey);
+        
+        if ($cached) {
+            return $cached;
+        }
+
+        $response = $this->makeRequest('POST', '/third-parties/payments/preview-ussd-push-request', $data);
+        
+        // Cache successful previews
+        if (!isset($response['success']) || $response['success'] !== false) {
+            $this->cachePreview($cacheKey, $response, config('clickpesa.cache.preview_ttl', 300));
+        }
+        
+        return $response;
     }
 
     /**
@@ -321,7 +346,8 @@ class ClickpesaService
      * Preview Card Payment
      * 
      * Validates card payment details like Amount, Order Reference and verifies
-     * card payment method availability.
+     * card payment method availability. Results are cached for 5 minutes to avoid 
+     * duplicate preview calls.
      * 
      * @param array $data Request payload
      *   - amount (string, required): Your payment amount
@@ -356,7 +382,22 @@ class ClickpesaService
      */
     public function previewCardPayment(array $data)
     {
-        return $this->makeRequest('POST', '/third-parties/payments/preview-card-payment', $data);
+        // Check cache first
+        $cacheKey = $this->generatePreviewCacheKey($data);
+        $cached = $this->getCachedPreview($cacheKey);
+        
+        if ($cached) {
+            return $cached;
+        }
+
+        $response = $this->makeRequest('POST', '/third-parties/payments/preview-card-payment', $data);
+        
+        // Cache successful previews
+        if (!isset($response['success']) || $response['success'] !== false) {
+            $this->cachePreview($cacheKey, $response, config('clickpesa.cache.preview_ttl', 300));
+        }
+        
+        return $response;
     }
 
     /**
