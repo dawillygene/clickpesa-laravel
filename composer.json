@@ -34,7 +34,8 @@
                 "Dawilly\\Dawilly\\ClickpesaServiceProvider"
             ],
             "aliases": {
-                "Clickpesa": "Dawilly\\Dawilly\\Facades\\Clickpesa"
+                "Clickpesa": "Dawilly\\Dawilly\\Facades\\Clickpesa",
+                "Disbursement": "Dawilly\\Dawilly\\Facades\\Disbursement"
             }
         }
     },

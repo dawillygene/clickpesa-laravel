@@ -19,6 +19,25 @@ class ClickpesaServiceProvider extends ServiceProvider
                 config('clickpesa.environment')
             );
         });
+
+        $this->app->singleton('disbursement', function ($app) {
+            $service = new Services\DisbursementService(
+                config('clickpesa.api_key'),
+                config('clickpesa.client_id'),
+                config('clickpesa.environment')
+            );
+            
+            // Share token between services
+            $clickpesa = $app->make('clickpesa');
+            if (method_exists($clickpesa, 'getToken')) {
+                $token = $clickpesa->getToken();
+                if ($token) {
+                    $service->setToken($token);
+                }
+            }
+            
+            return $service;
+        });
     }
 
     public function boot()

@@ -87,6 +87,17 @@ class ClickpesaService
         }
     }
 
+    /**
+     * Get the current authentication token
+     * 
+     * @return string|null
+     */
+    public function getToken()
+    {
+        $this->ensureToken();
+        return $this->token;
+    }
+
     protected function makeRequest($method, $endpoint, $data = [])
     {
         $this->ensureToken();
