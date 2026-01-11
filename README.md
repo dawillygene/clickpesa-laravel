@@ -21,10 +21,38 @@ composer require dawilly/laravel-clickpesa
 
 ## Configuration
 
-Publish the config file:
+### Publishing Package Assets
+
+The package provides the following publishable assets:
+
+#### 1. Publish Configuration File
 ```bash
 php artisan vendor:publish --tag=clickpesa-config
 ```
+Publishes `config/clickpesa.php` to your application's config directory.
+
+#### 2. Publish Database Migrations
+```bash
+php artisan vendor:publish --tag=clickpesa-migrations
+```
+Publishes database migrations to your `database/migrations/` directory.
+
+#### 3. Publish All Assets
+```bash
+php artisan vendor:publish --provider="Dawilly\\Dawilly\\ClickpesaServiceProvider"
+```
+Publishes all package assets (config + migrations) at once.
+
+### Running Migrations
+
+After publishing the migrations, run:
+```bash
+php artisan migrate
+```
+
+This creates the `clickpesa_transactions` and `clickpesa_webhooks` tables in your database.
+
+### Environment Configuration
 
 Add to your `.env`:
 ```env
