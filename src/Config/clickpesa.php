@@ -16,7 +16,7 @@ return [
     // Caching configuration
     'cache' => [
         'enabled' => env('CLICKPESA_CACHE_ENABLED', true),
-        'driver' => env('CLICKPESA_CACHE_DRIVER', 'default'), // uses Laravel's default cache driver
+        'driver' => env('CLICKPESA_CACHE_DRIVER', 'database'), // uses Laravel's default cache driver  or set default
         'ttl' => env('CLICKPESA_CACHE_TTL', 3600), // 1 hour - matches JWT token validity
         'preview_enabled' => env('CLICKPESA_CACHE_PREVIEW_ENABLED', true),
         'preview_ttl' => env('CLICKPESA_CACHE_PREVIEW_TTL', 300), // 5 minutes
