@@ -1,6 +1,7 @@
 {
     "name": "dawilly/laravel-clickpesa",
-    "description": "Laravel payment integration for Clickpesa",
+    "description": "A Laravel package for integrating with the ClickPesa payment gateway.",
+    "keywords": ["laravel", "clickpesa", "payment", "gateway", "integration"],
     "type": "library",
     "license": "MIT",
     "authors": [
