@@ -429,7 +429,7 @@ MIT License. See LICENSE file for details.
 
 ## Author
 
-Dawilly gene (ELIA WILLIAM MARIKI)
+Dawilly gene
 
 ## Support
 
